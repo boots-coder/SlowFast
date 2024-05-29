@@ -56,29 +56,30 @@ def build_model(cfg, gpu_id=None):
         model = apex.parallel.convert_syncbn_model(
             model, process_group=process_group
         )
+    model.to("cpu")
 
-    if cfg.NUM_GPUS:
-        if gpu_id is None:
-            # Determine the GPU used by the current process
-            cur_device = torch.cuda.current_device()
-        else:
-            cur_device = gpu_id
-        # Transfer the model to the current GPU device
-        model = model.cuda(device=cur_device)
+    # if cfg.NUM_GPUS:
+    #     if gpu_id is None:
+    #         # Determine the GPU used by the current process
+    #         cur_device = torch.cuda.current_device()
+    #     else:
+    #         cur_device = gpu_id
+    #     # Transfer the model to the current GPU device
+    #     model = model.cuda(device=cur_device)
     # Use multi-process data parallel model in the multi-gpu setting
-    if cfg.NUM_GPUS > 1:
-        # Make model replica operate on the current device
-        model = torch.nn.parallel.DistributedDataParallel(
-            module=model,
-            device_ids=[cur_device],
-            output_device=cur_device,
-            find_unused_parameters=True
-            if cfg.MODEL.DETACH_FINAL_FC
-            or cfg.MODEL.MODEL_NAME == "ContrastiveModel"
-            else False,
-        )
-        if cfg.MODEL.FP16_ALLREDUCE:
-            model.register_comm_hook(
-                state=None, hook=comm_hooks_default.fp16_compress_hook
-            )
+    # if cfg.NUM_GPUS > 1:
+    #     # Make model replica operate on the current device
+    #     model = torch.nn.parallel.DistributedDataParallel(
+    #         module=model,
+    #         device_ids=[cur_device],
+    #         output_device=cur_device,
+    #         find_unused_parameters=True
+    #         if cfg.MODEL.DETACH_FINAL_FC
+    #         or cfg.MODEL.MODEL_NAME == "ContrastiveModel"
+    #         else False,
+    #     )
+    #     if cfg.MODEL.FP16_ALLREDUCE:
+    #         model.register_comm_hook(
+    #             state=None, hook=comm_hooks_default.fp16_compress_hook
+    #         )
     return model

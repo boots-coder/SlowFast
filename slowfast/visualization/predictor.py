@@ -29,13 +29,14 @@ class Predictor:
                 slowfast/config/defaults.py
             gpu_id (Optional[int]): GPU id.
         """
-        if cfg.NUM_GPUS:
-            self.gpu_id = (
-                torch.cuda.current_device() if gpu_id is None else gpu_id
-            )
+        # if cfg.NUM_GPUS:
+        #     self.gpu_id = (
+        #         torch.cuda.current_device() if gpu_id is None else gpu_id
+        #     )
 
         # Build the video model and print model statistics.
-        self.model = build_model(cfg, gpu_id=gpu_id)
+        self.gpu_id = None
+        self.model = build_model(cfg, gpu_id=0)
         self.model.eval()
         self.cfg = cfg
 
